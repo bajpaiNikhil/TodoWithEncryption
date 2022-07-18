@@ -28,7 +28,13 @@ class ItemAdapter(
         with(holder){
             with(listNotes[position]){
                 binding.notesListTitleTv.text = this.todoItemTitle
-                binding.notesListItemDescriptionTv.text = this.todoItemDescription
+                val decryptDescription = AESEncyption.decrypt(
+                    this.todoItemDescription ,
+                    this.secretKey,
+                    this.salt,
+                    this.iv)
+
+                binding.notesListItemDescriptionTv.text = decryptDescription
                 binding.notesDeleteIv.setOnClickListener {
                     todoListViewModel.todoItemDelete(listNotes[position])
                 }

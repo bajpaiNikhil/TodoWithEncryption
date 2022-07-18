@@ -55,6 +55,7 @@ class TodoListFragment : Fragment() {
         // and perform changes on the custom action bar .
         val mainActivityInstance = requireActivity() as MainActivity
         mainActivityInstance.binding.welcomeMessage.text = "The List"
+        mainActivityInstance.binding.createNewTodoIV.visibility = View.VISIBLE
         mainActivityInstance.binding.createNewTodoIV.setOnClickListener {
             findNavController().navigate(R.id.action_todoListFragment_to_createTodoFragment)
         }

@@ -17,20 +17,28 @@ import com.example.todowithencryption.MainActivity
 import com.example.todowithencryption.R
 import com.example.todowithencryption.data.db.entities.TodoItem
 import com.example.todowithencryption.databinding.FragmentCreateTodoBinding
+import com.example.todowithencryption.other.AESEncyption
 import com.example.todowithencryption.viewModel.TodoListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
-
+//1	IamStupid	m3E5EKECJS3kTixBX2Wh5w== 	N52rX)axB6W+#Vizbe^%_cUv	ckzymxXJB9j^nTlVhI+P3O1(	bGru1+vDx^MTF&qUe8E)O%VQglh$(IsR	1
+//
 
 @AndroidEntryPoint
 class CreateTodoFragment : Fragment() {
+
+    private val alphabets = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
     private var _binding : FragmentCreateTodoBinding? = null
     private val binding get() = _binding!!
     private var dateText : String = ""
     var priorityStateVariable : String = ""
     private lateinit var item : TodoItem
+
+    private lateinit var saltKeyString :String
+    private lateinit var ivKeyString : String
+    private lateinit var secretKeyString : String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,6 +77,7 @@ class CreateTodoFragment : Fragment() {
         // spinnerSetup is used to set a spinner with priority i.e High , Moderate , Low
         // and will change the priorityStateVariable depending on which item is clicked .
         spinnerSetup()
+        keyStepUp()
 
         binding.notesAdd.setOnClickListener {
             //here on the press of add button we'll add the form data in the database .
@@ -77,6 +86,17 @@ class CreateTodoFragment : Fragment() {
             setUpData()
             findNavController().navigate(R.id.action_createTodoFragment_to_todoListFragment)
         }
+    }
+
+    private fun keyStepUp() {
+        val listAlphabets  = alphabets.toList()
+        val saltShuffleList = listAlphabets.shuffled()
+        saltKeyString = saltShuffleList.joinToString("" , limit = 24 , truncated = "")
+        val ivShuffleList = saltShuffleList.shuffled()
+        ivKeyString = ivShuffleList.joinToString("" , limit = 22  , truncated = "")
+        val secretShuffleList =  ivShuffleList.shuffled()
+        secretKeyString = secretShuffleList.joinToString("" , limit=32 , truncated = "")
+
     }
 
     private fun spinnerSetup() {
@@ -111,17 +131,26 @@ class CreateTodoFragment : Fragment() {
         val description = binding.notesDescriptionTv.text.toString()
 
         val viewModel:TodoListViewModel by viewModels()
+        //Encryption of the  description text .
+        Log.d("CreateTodoFragment" , "Keys are  $saltKeyString,__,$ivKeyString,__,$secretKeyString")
+        val encryptDescription = AESEncyption.encrypt(
+            description ,
+            secretKeyString ,
+            saltKeyString ,
+            ivKeyString)
 
         item = TodoItem(
             todoItemTitle = title ,
-            todoItemDescription =  description ,
+            todoItemDescription = encryptDescription!!,
             todoItemCreation = dateText ,
-            todoItemPriority = priorityStateVariable
+            todoItemPriority = priorityStateVariable ,
+            salt = saltKeyString ,
+            iv  = ivKeyString ,
+            secretKey =  secretKeyString
         )
 
         Log.d("CreateTodoFragment" , "Item is $item")
         viewModel.todoItemUpsert(item)
-
     }
 
     private fun upDateLabel(myCalendar: Calendar) {

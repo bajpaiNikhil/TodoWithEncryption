@@ -17,7 +17,17 @@ data class TodoItem(
     val todoItemPriority : String ,
 
     @ColumnInfo(name = "TodoItemCreation")
-    val todoItemCreation : String
+    val todoItemCreation : String ,
+
+    @ColumnInfo(name = "Salt")
+    val salt : String ,
+
+    @ColumnInfo(name = "Initialisation Vector")
+    val iv : String ,
+
+    @ColumnInfo(name = "Secret Key")
+    val secretKey : String
+
 ){
     @PrimaryKey(autoGenerate = true)
     var primaryKeyId:Int? =null
